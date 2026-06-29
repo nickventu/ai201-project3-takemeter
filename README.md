@@ -159,34 +159,35 @@ Transfer gossip
 
 ### Wrong predictions analyzed
 
-**1.** *"[comment text]"* — True: [label], Predicted: [label]
-<!-- Why did the model get this wrong? What linguistic feature misled it? Does this fall on a known edge-case seam? -->
+**1.** *"England vs Mexico in Mexico City is about to be absolute cinema."* — True: [Banter], Predicted: [Hot take]
+The comment contains no humor marker, rivalry jab, or in-group reference that a surface-level model could latch onto. "Cinema" is informal hyperbole, which likely pattern-matches to the assertive, evaluative language the model associated with Hot take. With only 29 Banter training examples, the model had insufficient signal to learn that Banter can be expressed through anticipatory excitement rather than an explicit joke or meme format.
 
-**2.** *"[comment text]"* — True: [label], Predicted: [label]
-<!-- Analysis -->
+**2.** *"Because it was only a 1-0 game. If Austria scores to tie it 1-1 and Messi is off the field they would be in trouble. He was subbed off when they were up 3-0."* — True: [Analysis], Predicted: [Hot take]
+This is a reply-dependent comment and its probative detail (the scoreline, the substitution timing) only reads as evidence-backed Analysis if you know what claim it's responding to. In isolation it looks like a string of assertions, which the model likely read as Hot take. This is a known limitation of the per-comment, context-free labeling approach documented in planning.md.
 
-**3.** *"[comment text]"* — True: [label], Predicted: [label]
-<!-- Analysis -->
+**3.** *"Its not a proper Villa transfer window without a loan signing of a Manchester United outcast, is it? 🤣 I do hope we see the best of Sancho as there is a great player in there somewhere!! Harvey Elliot"* — True: [Transfer gossip], Predicted: [Analysis]
+This comment mixes modes by opening with a banter-style joke about Villa's transfer habits, then shifting to genuine speculation about Sancho. The model predicted Analysis, likely because the second half names specific players and expresses a reasoned hope, which superficially resembles evidenced claims. This sits on the Banter/Analysis seam from edge case 2, but with a transfer context layered on top (a combination the model had almost no training examples to learn from.)
 
 ### Sample classifications
 
 | Comment (truncated) | True label | Predicted label | Confidence |
 |---|---|---|---|
-| *"[text]"* | Analysis | Analysis | 0.xx |
-| *"[text]"* | Hot take | Hot take | 0.xx |
-| *"[text]"* | Banter | Hot take | 0.xx |
-| *"[text]"* | Transfer gossip | Hot take | 0.xx |
+| *"Will Palace lose out long term on a fee for Guehi in future? Didn't want to sell him last season for £65 mil and just pulled the plug on a move to Liv"* | Analysis | Analysis | 0.27 |
+| *"Scored two goals against the worst team at the World Cup, IM BACK!"* | Hot take | Hot take | 0.28 |
+| *"Someone give pardew a hug"* | Banter | Hot take | 0.26 |
+| *"Apparently Solanke's ankle is worst than was thought. Might need surgery. Anyone got a Nico Jackson to go on loan?"* | Transfer gossip | Hot take | 0.28 |
 
-**Correct prediction explained:** <!-- Pick one correctly predicted example and explain in 2–3 sentences why the prediction is reasonable given what the model could have learned -->
+**Correct prediction explained:**
+- *"Will Palace lose out long term on a fee for Guehi in future? Didn't want to sell him last season for £65 mil and just pulled the plug on a move to Liv"*
+- The model correctly identified this as Analysis with 0.27 confidence. The comment cites a specific transfer fee (£65M) and a named player (Guehi) to support a forward-looking claim about sell-on value which is exactly the probative detail the Analysis definition requires. The low confidence (0.27) reflects how thin the margin is between Analysis and Hot take for the model, consistent with its overall difficulty separating these two classes.
 
 ---
 
 ## Reflection
 
-<!-- What did the model actually learn to distinguish, vs. what you intended it to learn? 
-This is not a list of wrong predictions — it's a higher-level observation about the gap between your label definitions and the model's actual decision boundary. 
-e.g. "The model learned to predict Hot take as a catch-all for any short, assertive comment, regardless of whether it contained transfer-related content or humor. 
-The intended boundary between Hot take and Banter — humor vs. assertion — was not learned at all." -->
+The model was intended to learn four linguistically distinct discourse modes: whether a comment earns its conclusion with checkable evidence (Analysis), asserts without evidence (Hot take), functions as humor or rivalry (Banter), or reacts to transfer news without analysis (Transfer gossip). In practice, the model learned a single coarse distinction: comments that pattern-match to assertive, evaluative language get predicted as Hot take, and everything else collapses into that same bucket. The intended boundaries — particularly Analysis vs. Hot take (does the evidence actually bear on the claim?) and Banter vs. Hot take (is the primary function humor rather than assertion?) — require understanding pragmatic intent and discourse structure, not surface lexical patterns. With 140 training examples and no access to the label definitions at inference time, DistilBERT had no mechanism to learn those distinctions and instead latched onto the path of least resistance: Hot take is the largest class and the most lexically similar to the others, so predicting it minimizes training loss without learning anything meaningful about the actual boundaries.
+
+The model learned to 
 
 ---
 
