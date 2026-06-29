@@ -89,7 +89,7 @@ A comment reacting to or speculating about a transfer rumor, with no tactical or
 
 **Prompt used:**
 
-"""
+...
 You are classifying comments from r/soccer, a soccer discussion community on Reddit.
 Assign each comment to exactly one of the following categories.
 
@@ -113,7 +113,7 @@ Analysis
 Hot take
 Banter
 Transfer gossip
-"""
+...
 
 **How results were collected:** Each of the 30 test comments was passed individually to Llama 3.3 70B via the Groq API using the system prompt above. The model's response was stripped, lowercased, and matched against the four valid label names (checked longest-first to avoid substring collisions). Any response that didn't match a known label was marked unparseable and excluded. All 30 responses parsed successfully. Predicted labels were then compared against ground truth to compute accuracy and per-class metrics.
 
@@ -187,13 +187,12 @@ This comment mixes modes by opening with a banter-style joke about Villa's trans
 
 The model was intended to learn four linguistically distinct discourse modes: whether a comment earns its conclusion with checkable evidence (Analysis), asserts without evidence (Hot take), functions as humor or rivalry (Banter), or reacts to transfer news without analysis (Transfer gossip). In practice, the model learned a single coarse distinction: comments that pattern-match to assertive, evaluative language get predicted as Hot take, and everything else collapses into that same bucket. The intended boundaries — particularly Analysis vs. Hot take (does the evidence actually bear on the claim?) and Banter vs. Hot take (is the primary function humor rather than assertion?) — require understanding pragmatic intent and discourse structure, not surface lexical patterns. With 140 training examples and no access to the label definitions at inference time, DistilBERT had no mechanism to learn those distinctions and instead latched onto the path of least resistance: Hot take is the largest class and the most lexically similar to the others, so predicting it minimizes training loss without learning anything meaningful about the actual boundaries.
 
-The model learned to 
 
 ---
 
 ## Spec Reflection
 
-**One way the spec helped:** The probative test in edge case 1 forced a distinction that the model could at least partially pick up on
+**One way the spec helped:** The probative test in edge case 1 forced a concrete annotation rule before full labeling began, which meant the Analysis/Hot take boundary was applied consistently across all 200 examples rather than drifting mid-collection. Without that rule, comments like the 38-year-old anecdote would likely have been inconsistently labeled.
 
 **One way implementation diverged from the spec and why:** Initially planned a pre_labeled_by_llm tracking column but this was not implemented; instead all annotation assistance is disclosed in aggregate in the AI usage section
 
